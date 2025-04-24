@@ -18,8 +18,9 @@ def sort(arr)
 end
 
 def lambda_handler(event:, context:)
+    file = File.read(event['filepath'])
+    arr = JSON.parse(file)['numbers']
     # TODO implement
-    arr = event['body']
     sort(arr)
-    { statusCode: 200, body: arr }
+    { statusCode: 200, body: "Sorted." }
 end
