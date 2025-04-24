@@ -13,6 +13,8 @@ def parse(in_str)
 end
 
 def lambda_handler(event:, context:)
-    # TODO implement
-    { statusCode: 200, body: parse(event['body']) }
+    filename = "string_input_%d.json" % [event['size']]
+    file = File.read(filename)
+    text = JSON.parse(file)['data']
+    { statusCode: 200, body: parse(text) }
 end
