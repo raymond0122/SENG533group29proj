@@ -18,7 +18,8 @@ def sort(arr)
 end
 
 def lambda_handler(event:, context:)
-    file = File.read(event['filepath'])
+    filename = "pi_input_%d.json" % [event['size']]
+    file = File.read(filename)
     arr = JSON.parse(file)['numbers']
     # TODO implement
     sort(arr)
