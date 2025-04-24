@@ -2,15 +2,20 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
 func main() {
+	starttime := time.Now().UTC().UnixMilli()
 	lambda.Start(handler)
+	runtime := time.Now().UTC().UnixMilli() - starttime
+	fmt.Println(runtime)
 }
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

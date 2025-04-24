@@ -18,7 +18,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	// Get ?size=25|50|100|500 from query string
 	sizeParam := request.QueryStringParameters["size"]
 	if sizeParam == "" {
-		sizeParam = "25"
+		sizeParam = "500"
 	}
 
 	validSizes := map[string]bool{
