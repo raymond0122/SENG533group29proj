@@ -1,0 +1,38 @@
+using System;
+using Amazon.Lambda.Core;
+using Amazon.Lambda.Serialization.SystemTextJson;
+
+[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
+
+namespace LetterCountLambda
+{
+    public class InputData
+    {
+        public string? data { get; set; } = string.Empty;
+    }
+
+    public class Function
+    {
+        public int[] FunctionHandler(InputData input, ILambdaContext context)
+        {
+            var result = new int[26];
+
+            if (string.IsNullOrEmpty(input.data))
+                return result;
+
+            foreach (char c in input.data)
+            {
+                if (c >= 'a' && c <= 'z')
+                {
+                    result[c - 'a']++;
+                }
+                else if (c >= 'A' && c <= 'Z')
+                {
+                    result[c - 'A']++;
+                }
+            }
+
+            return result;
+        }
+    }
+}
