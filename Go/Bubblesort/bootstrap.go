@@ -1,54 +1,42 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
-
-type JSONRequest struct {
-	Numbers []int `json:"numbers"`
-}
 
 func main() {
 	lambda.Start(handler)
 }
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	inputType := request.QueryStringParameters["input_type"] // "json" or "txt"
-	var numbers []int
+	// Get ?size=25|50|100|500 from query string
+	sizeParam := request.QueryStringParameters["size"]
+	if sizeParam == "" {
+		sizeParam = "25"
+	}
 
-	switch inputType {
-	case "json":
-		var jsonReq JSONRequest
-		err := json.Unmarshal([]byte(request.Body), &jsonReq)
-		if err != nil {
-			return failResponse("Invalid JSON input")
-		}
-		numbers = jsonReq.Numbers
+	validSizes := map[string]bool{
+		"25":  true,
+		"50":  true,
+		"100": true,
+		"500": true,
+	}
 
-	case "txt":
-		decoded, err := base64.StdEncoding.DecodeString(request.Body)
-		if err != nil {
-			return failResponse("Invalid base64 .txt content")
-		}
-		parts := strings.Split(string(decoded), ",")
-		for _, part := range parts {
-			n, err := strconv.Atoi(strings.TrimSpace(part))
-			if err != nil {
-				return failResponse("Invalid number in .txt content")
-			}
-			numbers = append(numbers, n)
-		}
+	if !validSizes[sizeParam] {
+		return failResponse("Invalid size parameter. Use one of: 25, 50, 100, 500")
+	}
 
-	default:
-		return failResponse("Invalid input_type. Use 'json' or 'txt'")
+	filename := fmt.Sprintf("pi_input_%s.json", sizeParam)
+
+	numbers, err := loadFromFile(filename)
+	if err != nil {
+		return failResponse("Failed to load file: " + err.Error())
 	}
 
 	linearSort(numbers)
@@ -59,6 +47,20 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		Body:       body,
 		Headers:    map[string]string{"Content-Type": "text/plain"},
 	}, nil
+}
+
+func loadFromFile(path string) ([]int, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var data struct {
+		Numbers []int `json:"numbers"`
+	}
+	err = json.NewDecoder(file).Decode(&data)
+	return data.Numbers, err
 }
 
 func linearSort(list []int) {
